@@ -48,8 +48,8 @@ Generated grid :
 
 Plotted in QGIS :
 
-![Grid of the population in the biggest city of Netherlands plotted in qgis](https://github.com/agatheblues/r-resample-geodata-to-grid/blob/master/example/nl_map_grid_qgis.png)
+![Grid of the population in the biggest city of Netherlands plotted in qgis](https://github.com/agatheblues/r-resample-geodata-to-grid/blob/master/example/nl_map_grid_wqgis.png)
 
 ## Limitations
-- The generated grid does not follow country borders, it's a rectangular grid. So there are data points 'in the sea' or out of the country borders. 
+- The generated grid does not follow country borders, it's a rectangular grid. So there are data points 'in the sea' or out of the country borders.
 - I tested this on small datasets (~600 records) or small regions (~city size).
