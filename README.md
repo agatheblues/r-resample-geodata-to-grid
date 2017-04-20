@@ -11,7 +11,7 @@ I wrote this algorithm in R and the only reason for it is that I wanted to try i
 ### Libraries
 I run this in R studio and I need *sp* and *rgeos* libraries to geocode latitude and longitude data.
 *dplyr* is here for aggregation but you can also use basic aggregation from R.
-*ggplot2* is here only if you want to plot the resulted grid.
+*ggplot2* , *maps*, *map_data* are here only if you want to plot the resulted grid.
 
 ### What else you could do with it
 Although I am geocoding the coordinates, I use cartesian distances. To change this you can add options in the *gDistance* function  (rgeos), and pick another way.
@@ -25,7 +25,7 @@ I need to find the value of each grid point.
 ### Rules
 1. The value of each grid point is affected only by the closest value point, not by the rest of the value points.
 
-2. The value of a grid point should depend on the sqaured distance to the value point it is affected by.
+2. The value of a grid point should depend on the squared distance to the value point it is affected by.
 The closer the grid point is to the value point, the bigger its 'share' of the original value is.
 The farther the grid point is to the value, the smaller its share of the original value is.
 
@@ -33,3 +33,6 @@ The farther the grid point is to the value, the smaller its share of the origina
 the value of all the grid point around a value point, the result would be the original value of the value point. That also means that the value
 to assign to a grid point needs to be ponderated by a constant, which is the sum of the inverse of the squared distances from the value point
 to all its closest grid points.
+
+## Example
+http://www.geonames.org/NL/largest-cities-in-netherlands.html

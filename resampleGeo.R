@@ -1,5 +1,3 @@
-setwd("~/Documents/Weather_Chart_2016/resampleGeo")
-library(ggplot2)
 library(sp)
 library(rgeos)
 library(dplyr)
@@ -7,6 +5,7 @@ library(dplyr)
 ## Rename latitude, longitude and value column
 # df - data frame - Contains the latitude and longitude of the value points, and their attached value
 # latName - string - String of the column name that contains the latitudes
+# lonName - string - String of the column name that contains the longitudes
 # valueName - string - String of the column name that contains the values of the points
 # RETURNS df - data frame - It's df with updated column names
 setColumnNames <- function(df, latName, lonName, valueName) {
@@ -47,7 +46,7 @@ getGrid <- function(df, step) {
     latValues <- seq(minLat-step, maxLat+step, step)
 
     # Generate matrix of longitude values for each latitude
-    lonValues <- sapply(latValues, function(latValues) seq(minLon-step, maxLon-step, step))
+    lonValues <- sapply(latValues, function(latValues) seq(minLon-step, maxLon+step, step))
 
     # Sort longitude to have them grouped by value and make it a vector
     vector_lonValues <- sort(as.vector(lonValues))
@@ -99,17 +98,27 @@ getClosestPoint <- function(valuePoints, gridPoints) {
 }
 
 # Get the sum of the inverse of the squared distances from a value point to all its neighbours grid points
-# WRONG ! IT CALCULATES FOR ALL THE POINTS ATM
+# closest_points - data frame - Contains the grid points coordinates (glon, glat),
+# the value point coordinates that is the closest to each of them (lat, lon)
+# and the distance dist between the two points
+# RETURNS df_sumInvSquaredDist - data frame - Contains the id of the value point and the computed sum of the inverse squared distances to all its closest grid points
 getInverseSquaredSumOfDistances <- function(closest_points){
-    
+
     # Get inverse of squared value of each distance
     closest_points$inverseSquaredDist <- 1 / (closest_points$dist^2)
-    
+
     df_sumInvSquaredDist <- closest_points[c('value_id', 'inverseSquaredDist')] %>% group_by(value_id) %>% summarise_each(funs(sumInvSquaredDist = sum))
 
     return(df_sumInvSquaredDist)
 }
 
+# Compute the values of all the grid points
+# df - data frame - Contains the latitude and longitude of the value points, and their attached value
+# latName - string - String of the column name that contains the latitudes
+# lonName - string - String of the column name that contains the longitudes
+# valueName - string - String of the column name that contains the values of the points
+# step - double - Size of the grid step. The grid step is the distance between 2 grid points.
+# RETURNS grid_sum - data frame - Contains the latitude, longitude and value of each grid point
 generateGridValues <- function(df, latName, lonName, valueName, step){
     df_0 <- setColumnNames(df, latName, lonName, valueName)
     df <- generateIdColumn(df_0, 'value_id')
@@ -124,13 +133,13 @@ generateGridValues <- function(df, latName, lonName, valueName, step){
 
     # Get squared distance from value point to grid point
     grid_closest$squaredDist <- grid_closest$dist^2
-     
+
     # Get sum of inverse suqred distances to the value point
     df_sumDistances <- getInverseSquaredSumOfDistances(grid_closest)
 
     # Merge closest and sum distances
     grid_sum <- merge(grid_closest, df_sumDistances, by='value_id')
-    
+
     # Calculate the value of the grid point
     # It is the value of the closest value point, divided by the squared distance between the two points
     # and ponderated by the sum of the inverse squared distances of all the grid points that are closest to this
@@ -138,13 +147,5 @@ generateGridValues <- function(df, latName, lonName, valueName, step){
     # CASE WHEN DIST = 0
     grid_sum$gridValue <- (grid_sum$count / grid_sum$squaredDist) * (1 / grid_sum$sumInvSquaredDist)
 
-    return(grid_sum)
+    return(grid_sum[c('glat', 'glon', 'gridValue')])
 }
-
-# Prepare dataset
-data_0 <- read.csv('ny_station_count_start.csv')
-grid_sum <- generateGridValues(data_0, 'lat', 'lon', 'Count', 0.002)
-
-write.csv(grid_sum, 'ny_resample025_2.csv')
-
-ggplot(grid_sum, aes(glat, glon)) + geom_point(aes(size=gridValue, alpha=0.2))
