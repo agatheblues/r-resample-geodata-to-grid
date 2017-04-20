@@ -2,13 +2,27 @@
 
 ## About
 This algorithm takes a geolocated dataset, where points have a set of coordinates (longitude and latitude) and an associated value,
-and resample the data on a regular grid of latitude and longitude. The goal is to 'spread' the value of a point on the grid.
+and resample the data on a regular grid of latitude and longitude. The goal is to 'spread' the values of the points on a regular grid.
+
+## R, libraries, options
+### Why R
+I wrote this algorithm in R and the only reason for it is that I wanted to try it in R. It's not about writing the fastest and most efficient algorithm, but rather see what I could do to solve this problem.
+
+### Libraries
+I run this in R studio and I need *sp* and *rgeos* libraries to geocode latitude and longitude data.
+*dplyr* is here for aggregation but you can also use basic aggregation from R.
+*ggplot2* is here only if you want to plot the resulted grid.
+
+### What else you could do with it
+Although I am geocoding the coordinates, I use cartesian distances. To change this you can add options in the *gDistance* function  (rgeos), and pick another way.
+
 
 ## Algorithm
+### About
 I named *value points* the original dataset, that holds coordinates and the value of the points. *grid points* are the points on the grid.
 I need to find the value of each grid point.
 
-Rules :
+### Rules
 1. The value of each grid point is affected only by the closest value point, not by the rest of the value points.
 
 2. The value of a grid point should depend on the sqaured distance to the value point it is affected by.
