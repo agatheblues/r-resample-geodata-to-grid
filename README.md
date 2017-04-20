@@ -35,4 +35,11 @@ to assign to a grid point needs to be ponderated by a constant, which is the sum
 to all its closest grid points.
 
 ## Example
-http://www.geonames.org/NL/largest-cities-in-netherlands.html
+Source of the data : http://www.geonames.org/NL/largest-cities-in-netherlands.html
+It plots the population of the biggest city on the Netherlands.
+
+Original Data :
+![Population in the biggest city of Netherlands](https://github.com/agatheblues/r-resample-geodata-to-grid/blob/master/example/nl_map_original.png)
+
+Generated grid :
+![Grid of the population in the biggest city of Netherlands](https://github.com/agatheblues/r-resample-geodata-to-grid/blob/master/example/nl_map_grid.png)
