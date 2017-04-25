@@ -5,7 +5,7 @@ source('../resampleGeo.R')
 
 # Example of a run
 data_0 <- read.csv('NL_populationByCity.csv')
-grid_sum <- generateGridValues(data_0, 'Latitude', 'Longitude', 'Population', 0.05)
+grid_sum <- generateGridValues(data_0, 'Latitude', 'Longitude', 'Population', 0.05, TRUE)
 
 
 # Source for plotting the map script https://sarahleejane.github.io/learning/r/2014/09/21/plotting-data-points-on-maps-with-r.html
@@ -30,4 +30,3 @@ both
 # Plot only the grid
 grid <- nl_plot + geom_point(data=grid_sum, aes(x=glon, y=glat, size=gridValue), colour="brown2", fill="brown2",pch=21, alpha=I(0.5)) + scale_size_area()
 grid
-

@@ -107,9 +107,24 @@ getInverseSquaredSumOfDistances <- function(closest_points){
     # Get inverse of squared value of each distance
     closest_points$inverseSquaredDist <- 1 / (closest_points$dist^2)
 
-    df_sumInvSquaredDist <- closest_points[c('value_id', 'inverseSquaredDist')] %>% group_by(value_id) %>% summarise_each(funs(sumInvSquaredDist = sum))
+    df_sumInvSquaredDist <- closest_points[c('value_id', 'inverseSquaredDist')] %>% group_by(value_id) %>% summarise_each(funs(sumDistances = sum))
 
     return(df_sumInvSquaredDist)
+}
+
+# Get the sum of the inverse of the distances from a value point to all its neighbours grid points
+# closest_points - data frame - Contains the grid points coordinates (glon, glat),
+# the value point coordinates that is the closest to each of them (lat, lon)
+# and the distance dist between the two points
+# RETURNS df_sumInvDist - data frame - Contains the id of the value point and the computed sum of the inverse distances to all its closest grid points
+getInverseSumOfDistances <- function(closest_points){
+
+    # Get inverse of squared value of each distance
+    closest_points$inverseDist <- 1 / (closest_points$dist)
+
+    df_sumInvDist <- closest_points[c('value_id', 'inverseDist')] %>% group_by(value_id) %>% summarise_each(funs(sumDistances = sum))
+
+    return(df_sumInvDist)
 }
 
 # Compute the values of all the grid points
@@ -118,8 +133,9 @@ getInverseSquaredSumOfDistances <- function(closest_points){
 # lonName - string - String of the column name that contains the longitudes
 # valueName - string - String of the column name that contains the values of the points
 # step - double - Size of the grid step. The grid step is the distance between 2 grid points.
+# useSquaredDistances - Boolean - Defines if you wan to use normal distances or squared ditances
 # RETURNS grid_sum - data frame - Contains the latitude, longitude and value of each grid point
-generateGridValues <- function(df, latName, lonName, valueName, step){
+generateGridValues <- function(df, latName, lonName, valueName, step, useSquaredDistances){
     df_0 <- setColumnNames(df, latName, lonName, valueName)
     df <- generateIdColumn(df_0, 'value_id')
 
@@ -132,10 +148,18 @@ generateGridValues <- function(df, latName, lonName, valueName, step){
     grid_closest <- getClosestPoint(df, grid)
 
     # Get squared distance from value point to grid point
-    grid_closest$squaredDist <- grid_closest$dist^2
+    if (useSquaredDistances) {
+        grid_closest$distance <- grid_closest$dist^2
 
-    # Get sum of inverse suqred distances to the value point
-    df_sumDistances <- getInverseSquaredSumOfDistances(grid_closest)
+        # Get sum of inverse suqred distances to the value point
+        df_sumDistances <- getInverseSquaredSumOfDistances(grid_closest)
+    } else {
+        grid_closest$distance <- grid_closest$dist
+
+        # Get sum of inverse suqred distances to the value point
+        df_sumDistances <- getInverseSumOfDistances(grid_closest)
+    }
+
 
     # Merge closest and sum distances
     grid_sum <- merge(grid_closest, df_sumDistances, by='value_id')
@@ -145,7 +169,8 @@ generateGridValues <- function(df, latName, lonName, valueName, step){
     # and ponderated by the sum of the inverse squared distances of all the grid points that are closest to this
     # value point
     # CASE WHEN DIST = 0
-    grid_sum$gridValue <- (grid_sum$count / grid_sum$squaredDist) * (1 / grid_sum$sumInvSquaredDist)
+    grid_sum$gridValue <- (grid_sum$count / grid_sum$distance) * (1 / grid_sum$sumDistances)
 
+    return(grid_sum)
     return(grid_sum[c('glat', 'glon', 'gridValue')])
 }

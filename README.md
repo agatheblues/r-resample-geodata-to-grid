@@ -31,8 +31,24 @@ The farther the grid point is to the value, the smaller its share of the origina
 
 3. The value of the value point should be spread among the grid points that are the closest to it. That means that if you would sum
 the value of all the grid point around a value point, the result would be the original value of the value point. That also means that the value
-to assign to a grid point needs to be ponderated by a constant, which is the sum of the inverse of the squared distances from the value point
+to assign to a grid point needs to be ponderated by a constant, which is the sum of the inverse of the (squared or not) distances from the value point
 to all its closest grid points.
+
+## Squared or not squared distances ?
+Using squared distances will result in having your values spread 'rapidly' around the original point, so that the grid values are rapidly small.
+Using 'normal' distances will result in having the values spread on a bigger area around the original point.
+It all depends if you want to have higher density of value around the original point or not. There is a boolean paramater in `generateGridValues` that allows you to choose the method you wish!
+
+
+## How to use it
+Assuming you loaded a data frame called *data*, run: `generateGridValues(data, 'Latitude', 'Longitude', 'Value', step, useSquaredDistances)` where
+
+- *data* is the data frame
+- 'Latitude' is a string containing the column name of the latitude in *data*
+- 'Longitude' is a string containing the column name of the longitude in *data*
+- 'Value' is a string containing the column name of the values you want to resample in *data*
+- step is a number indicating the grid step (the smaller, the densier is the grid and also the longer is the execution time)
+- useSquaredDistances is a boolean indicating, if TRUE that you want to use squared distances or not in the computation.
 
 ## Example
 Source of the data : http://www.geonames.org/NL/largest-cities-in-netherlands.html
