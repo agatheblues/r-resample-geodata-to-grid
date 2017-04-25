@@ -25,7 +25,7 @@ I need to find the value of each grid point.
 ### Rules
 1. The value of each grid point is affected only by the closest value point, not by the rest of the value points.
 
-2. The value of a grid point should depend on the squared distance to the value point it is affected by.
+2. The value of a grid point should depend on the (squared or not) distance to the value point it is affected by.
 The closer the grid point is to the value point, the bigger its 'share' of the original value is.
 The farther the grid point is to the value, the smaller its share of the original value is.
 
