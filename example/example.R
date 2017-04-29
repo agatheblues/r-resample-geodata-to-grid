@@ -3,10 +3,9 @@ library(mapdata)
 library(maps)
 source('../resampleGeo.R')
 
-# Example of a run
+## EXAMPLE WITHOUT PROVIDING A SHAPEFILE (POLYGON)
 data_0 <- read.csv('NL_populationByCity.csv')
 grid_sum <- generateGridValues(data_0, 'Latitude', 'Longitude', 'Population', 0.05, TRUE)
-
 
 # Source for plotting the map script https://sarahleejane.github.io/learning/r/2014/09/21/plotting-data-points-on-maps-with-r.html
 world <- map_data("world")
@@ -30,3 +29,16 @@ both
 # Plot only the grid
 grid <- nl_plot + geom_point(data=grid_sum, aes(x=glon, y=glat, size=gridValue), colour="brown2", fill="brown2",pch=21, alpha=I(0.5)) + scale_size_area()
 grid
+
+
+## EXAMPLE WITH A POLYGON
+# Get polygon world data
+world_polygon <- readShapefile('nl_shapefile/ne_110m_admin_0_countries.shp', 'ne_110m_admin_0_countries')
+# Filter on the netherlands
+nl_polygon <- world_polygon[world_polygon$sov_a3 == 'NL1',]
+# Run the command
+grid_sum_inPolygon <- generateGridValues(data_0, 'Latitude', 'Longitude', 'Population', 0.05, TRUE, nl_polygon)
+# Plot results
+ggplot(data = nl_polygon) + geom_polygon(aes(x=long, y=lat), fill=NA, colour='black') + cleanup + geom_point(data=grid_sum_inPolygon, aes(x=glon, y=glat, size=gridValue), colour='red') + scale_size_area()
+
+

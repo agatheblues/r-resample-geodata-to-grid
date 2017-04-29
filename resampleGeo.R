@@ -70,7 +70,7 @@ getGrid <- function(df, step) {
 readShapefile <- function(pathToshapefile, shapefileLayer){
     # Read the shapefile to a spatial polygon dataframe
     polygon <- readOGR(pathToshapefile, layer=shapefileLayer)
-    
+
     return(polygon)
 }
 
@@ -82,26 +82,28 @@ readShapefile <- function(pathToshapefile, shapefileLayer){
 # Source : https://gis.stackexchange.com/questions/133625/checking-if-points-fall-within-polygon-shapefile
 pointsInPolygon <- function(grid, polygon){
     grid <- generateIdColumn(grid, 'id')
-    
+
     # Transform grid to spatial points dataframe
     coordinates(grid) <- ~glon+glat
-    
+
     # Set the projection of the SpatialPointsDataFrame using the projection of the shapefile
     proj4string(grid) <- proj4string(polygon)
-    
+
     # Get the points that are inside the polygon
     gridInPolygon <- over(grid, polygon)
+ 
+    # Generate ids for future merge
+    gridInPolygon <- generateIdColumn(gridInPolygon, 'id')
     
     # Over returns a data frame the size of grid with NAs for the points that are not in the polygon
-    gridInPolygon <- generateIdColumn(gridInPolygon, 'id')
-    gridInPolygon  <- gridInPolygon[complete.cases(gridInPolygon),]
+    gridInPolygon <- gridInPolygon[!is.na(gridInPolygon[2]),]
     
     # Merge with original grid to get the lat and lon values
     gridInPolygon <- merge(gridInPolygon, grid, by='id', all.x=TRUE)
-    
+
     # Keep only valuable columns
     gridInPolygon <- gridInPolygon[c('glat', 'glon')]
-    
+
     return(gridInPolygon)
 }
 
@@ -177,15 +179,23 @@ getInverseSumOfDistances <- function(closest_points){
 # valueName - string - String of the column name that contains the values of the points
 # step - double - Size of the grid step. The grid step is the distance between 2 grid points.
 # useSquaredDistances - Boolean - Defines if you wan to use normal distances or squared ditances
+# polygon - OPTIONAL - SpatialPolygonsDataFrame - contains the spatial features of a polygon : only grid points
+# that are in the polygon will be used for the resampling
 # RETURNS grid_sum - data frame - Contains the latitude, longitude and value of each grid point
-generateGridValues <- function(df, latName, lonName, valueName, step, useSquaredDistances){
+generateGridValues <- function(df, latName, lonName, valueName, step, useSquaredDistances, polygon){
     df_0 <- setColumnNames(df, latName, lonName, valueName)
     df <- generateIdColumn(df_0, 'value_id')
 
-    ## Generate grid points
+    # Generate grid points
     grid_0 <- getGrid(df, step)
+   
+    # Remove grid points that are not inside the polygon, if a polygon was provided
+    if (!missing(polygon)) {
+        grid_0 <- pointsInPolygon(grid_0, polygon)
+    }
+
+    # Generate id column for grid
     grid <- generateIdColumn(grid_0, 'grid_id')
-    # qplot(glat, glon, data=grid)
 
     # Get closest value point to grid points
     grid_closest <- getClosestPoint(df, grid)
@@ -214,6 +224,5 @@ generateGridValues <- function(df, latName, lonName, valueName, step, useSquared
     # CASE WHEN DIST = 0
     grid_sum$gridValue <- (grid_sum$count / grid_sum$distance) * (1 / grid_sum$sumDistances)
 
-    return(grid_sum)
     return(grid_sum[c('glat', 'glon', 'gridValue')])
 }
