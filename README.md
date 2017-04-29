@@ -4,12 +4,15 @@
 This algorithm takes a geolocated dataset, where points have a set of coordinates (longitude and latitude) and an associated value,
 and resample the data on a regular grid of latitude and longitude. The goal is to 'spread' the values of the points on a regular grid.
 
+By default the grid generated is rectangular.
+If a shapefile of the boundaries is provided, the grid will follow the country borders.
+
 ## R, libraries, options
 ### Why R
 I wrote this algorithm in R and the only reason for it is that I wanted to try it in R. It's not about writing the fastest and most efficient algorithm, but rather see what I could do to solve this problem.
 
 ### Libraries
-I run this in R studio and I need *sp* and *rgeos* libraries to geocode latitude and longitude data.
+I run this in R studio and I need *sp*, *rgdal*, and *rgeos* libraries to geocode latitude and longitude data.
 *dplyr* is here for aggregation but you can also use basic aggregation from R.
 *ggplot2* , *maps*, *map_data* are here only if you want to plot the resulted grid.
 
@@ -41,7 +44,7 @@ It all depends if you want to have higher density of value around the original p
 
 
 ## How to use it
-Assuming you loaded a data frame called *data*, run: `generateGridValues(data, 'Latitude', 'Longitude', 'Value', step, useSquaredDistances)` where
+Assuming you loaded a data frame called *data*, run: `generateGridValues(data, 'Latitude', 'Longitude', 'Value', step, useSquaredDistances, polygon)` where
 
 - *data* is the data frame
 - 'Latitude' is a string containing the column name of the latitude in *data*
@@ -49,6 +52,8 @@ Assuming you loaded a data frame called *data*, run: `generateGridValues(data, '
 - 'Value' is a string containing the column name of the values you want to resample in *data*
 - step is a number indicating the grid step (the smaller, the densier is the grid and also the longer is the execution time)
 - useSquaredDistances is a boolean indicating, if TRUE that you want to use squared distances or not in the computation.
+- polygon is a SpatialPolygonsDataFrame containing the boundaries of the area you want to generate your grid upon.
+polygon is an optional argument. If it is left empty, the grid generated will be rectangulare. If you provide a polygon (via readShapefile, see the example), then the grid will take into account the borders of the area, and only grid points that are inside the polygon will be used.
 
 ## Example
 Source of the data : http://www.geonames.org/NL/largest-cities-in-netherlands.html
@@ -58,7 +63,11 @@ Original Data :
 
 ![Population in the biggest city of Netherlands](https://github.com/agatheblues/r-resample-geodata-to-grid/blob/master/example/nl_map_original.png)
 
-Generated grid :
+Generated grid if you provide a polygon :
+![Grid of the population in the biggest city of Netherlands, with grid points in polygon only](https://github.com/agatheblues/r-resample-geodata-to-grid/blob/master/example/nl_inPolygon.png)
+
+
+Generated grid if you don't provide a polygon :
 
 ![Grid of the population in the biggest city of Netherlands](https://github.com/agatheblues/r-resample-geodata-to-grid/blob/master/example/nl_map_grid.png)
 
@@ -66,6 +75,6 @@ Plotted in QGIS :
 
 ![Grid of the population in the biggest city of Netherlands plotted in qgis](https://github.com/agatheblues/r-resample-geodata-to-grid/blob/master/example/nl_map_grid_wqgis.png)
 
+
 ## Limitations
-- The generated grid does not follow country borders, it's a rectangular grid. So there are data points 'in the sea' or out of the country borders.
 - I tested this on small datasets (~600 records) or small regions (~city size).
