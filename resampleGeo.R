@@ -1,6 +1,7 @@
 library(sp)
 library(rgeos)
 library(dplyr)
+library(rgdal)
 
 ## Rename latitude, longitude and value column
 # df - data frame - Contains the latitude and longitude of the value points, and their attached value
@@ -60,6 +61,48 @@ getGrid <- function(df, step) {
     colnames(grid) <- c('glat', 'glon')
 
     return(grid)
+}
+
+## Read a shapefile
+# pathToShapefile - string - path name to the shapefile
+# shapefileLayer - string - name of the layer to read, usually equals to the shapefile name without '.shp'
+# RETURNS a SpatialPolygonsDataFrame of the shapefile
+readShapefile <- function(pathToshapefile, shapefileLayer){
+    # Read the shapefile to a spatial polygon dataframe
+    polygon <- readOGR(pathToshapefile, layer=shapefileLayer)
+    
+    return(polygon)
+}
+
+
+## Filter a set of points to keep the ones that are inside a polygon
+# grid - data frame - contains the latitude (glat) and longitude (glon) of the points to filter
+# polygon - SpatialPolygonsDataFrame - contains the spatial features of the polygon
+# Returns - data frame - contains the latitude (glat) and longitude (glon) of the points from grid that are in polygon
+# Source : https://gis.stackexchange.com/questions/133625/checking-if-points-fall-within-polygon-shapefile
+pointsInPolygon <- function(grid, polygon){
+    grid <- generateIdColumn(grid, 'id')
+    
+    # Transform grid to spatial points dataframe
+    coordinates(grid) <- ~glon+glat
+    
+    # Set the projection of the SpatialPointsDataFrame using the projection of the shapefile
+    proj4string(grid) <- proj4string(polygon)
+    
+    # Get the points that are inside the polygon
+    gridInPolygon <- over(grid, polygon)
+    
+    # Over returns a data frame the size of grid with NAs for the points that are not in the polygon
+    gridInPolygon <- generateIdColumn(gridInPolygon, 'id')
+    gridInPolygon  <- gridInPolygon[complete.cases(gridInPolygon),]
+    
+    # Merge with original grid to get the lat and lon values
+    gridInPolygon <- merge(gridInPolygon, grid, by='id', all.x=TRUE)
+    
+    # Keep only valuable columns
+    gridInPolygon <- gridInPolygon[c('glat', 'glon')]
+    
+    return(gridInPolygon)
 }
 
 ## Get pairwise distances between the grid points and the original points
