@@ -64,6 +64,7 @@ Original Data :
 ![Population in the biggest city of Netherlands](https://github.com/agatheblues/r-resample-geodata-to-grid/blob/master/example/nl_map_original.png)
 
 Generated grid if you provide a polygon :
+
 ![Grid of the population in the biggest city of Netherlands, with grid points in polygon only](https://github.com/agatheblues/r-resample-geodata-to-grid/blob/master/example/nl_inPolygon.png)
 
 
